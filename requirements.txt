@@ -1,0 +1,9 @@
+pandas
+matplotlib
+seaborn
+vaderSentiment
+scikit-learn
+jupyter
+ipykernel
+transformers
+torch
