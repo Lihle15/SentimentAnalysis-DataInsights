@@ -124,7 +124,6 @@ Dashboard with Delta selected, where every chart filters to that airline. Delta'
 ![Dashboard model accuracy screenshot](docs/images/dashboard_model_accuracy.png)
 Accuracy of RoBERTa and VADER against the human labels, by airline.
 
-These images must be added to the repository before publishing the dashboard in a portfolio context.
 
 ## How to run
 
