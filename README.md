@@ -113,16 +113,16 @@ The project includes a dashboard file at [dashboard/airline_sentiment_dashboard.
 
 The dashboard has no time or trend view.
 
-### Dashboard placeholder screenshots
+### Dashboard screenshots
 
 ![Dashboard overview screenshot](docs/images/dashboard_overview.png)
-This image should show the dashboard overview and the overall airline sentiment mix.
+Dashboard overview: sentiment mix by airline (human-labelled), complaint reasons, model accuracy by airline, and an airline slicer.
 
 ![Dashboard airline selected screenshot](docs/images/dashboard_airline_selected.png)
-This image should show the airline slicer and the selected airline view.
+Dashboard with Delta selected, where every chart filters to that airline. Delta's top complaint is late flights, while for the other five airlines it is customer service.
 
 ![Dashboard model accuracy screenshot](docs/images/dashboard_model_accuracy.png)
-This image should show the model accuracy comparison between RoBERTa and VADER by airline.
+Accuracy of RoBERTa and VADER against the human labels, by airline.
 
 These images must be added to the repository before publishing the dashboard in a portfolio context.
 
