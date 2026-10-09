@@ -1,6 +1,6 @@
 # Sentiment Analysis and Data Insights
 
-This project explores airline-related tweet sentiment using a combination of rule-based and transformer-based approaches. The analysis compares VADER sentiment scoring with a RoBERTa model and prepares a cleaned dataset for dashboard reporting.
+This project explores airline-related tweet sentiment using a comparison between a rule-based baseline (VADER) and a transformer-based language model (RoBERTa). The analysis is based on the Kaggle "Twitter US Airline Sentiment" dataset and prepares a cleaned dataset for dashboard reporting.
 
 ## Project goal
 
@@ -10,101 +10,129 @@ The main objective was to classify each tweet into one of the airline sentiment 
 - neutral
 - positive
 
-and then evaluate how well the rule-based VADER method and the RoBERTa model match the airline-provided labels in the source data.
+and then evaluate how well the rule-based VADER method and the RoBERTa model align with the human-annotated labels supplied with the dataset.
 
 ## Data source
 
-The project reads the tweet dataset from [data/Tweets.csv](data/Tweets.csv). The data includes tweet text, airline, sentiment label, confidence, negative reason, and timestamp fields.
+The project uses the Kaggle "Twitter US Airline Sentiment" dataset. It contains 14,640 tweets collected between 17 and 24 February 2015 from six US airlines: United, US Airways, American, Southwest, Delta, and Virgin America. The labels were human-annotated and supplied with the dataset, not provided by the airlines.
 
-## Workflow
+The label distribution in the dataset is:
 
-### 1. Data loading and cleanup
+- negative: 9,178 (62.7%)
+- neutral: 3,099 (21.2%)
+- positive: 2,363 (16.1%)
 
-The notebook loads the dataset and keeps only the columns needed for analysis and export:
+## Results
 
-- tweet_id
-- airline
-- airline_sentiment
-- airline_sentiment_confidence
-- negativereason
-- text
-- tweet_created
+| Model | Accuracy | Macro F1 | Notes |
+| --- | ---: | ---: | --- |
+| VADER (raw text) | 0.490 | — | Baseline result on raw text |
+| VADER (cleaned text) | 0.550 | 0.514 | Cleaned text result |
+| RoBERTa | 0.769 | 0.734 | Transformer-based classifier |
 
-The project also inspects the label distribution and reviews the first rows to validate the dataset structure.
+The confidence subset with label confidence >= 0.7 contains 10,768 tweets. In this subset, VADER achieved 0.592 accuracy and 0.532 macro F1, while RoBERTa achieved 0.840 accuracy and 0.790 macro F1. This subset is a robustness check, not the headline result, because it has proportionally more negative tweets (70.1%) and fewer neutral tweets (15.2%).
 
-### 2. Text preprocessing for VADER
+## Coursework & Applied Competencies
 
-A custom cleaning function removes URLs, @mentions, HTML leftovers, and repeated whitespace from tweet text before sentiment inference. This creates both a raw version and a cleaned version of each tweet.
+This project maps to the core concepts in the Coursera modules below without claiming course completion.
 
-The VADER sentiment analyzer is then applied to:
+### Python for Data Science, AI & Development
 
-- the original text
-- the cleaned text
+- Data loading and cleaning with pandas
+- Exploratory data analysis on airline tweet data
+- Label analysis, distribution checks, and dataset validation
+- Basic model evaluation using accuracy, classification reports, and confusion matrices
+- Data preparation for reporting and visualization
 
-This produces a sentiment label for each tweet using the standard VADER thresholds:
+### Generative AI with LLMs
 
-- positive if compound score >= 0.05
-- negative if compound score <= -0.05
-- neutral otherwise
+- Transformer-based text classification using a Hugging Face model
+- Language understanding for customer feedback and social media text
+- Context-aware sentiment inference for airline complaints
+- Use of a transformer-based language model for text classification
 
-### 3. Model evaluation and comparison
+### Applied competencies demonstrated in this repository
 
-The notebook compares the airline labels against the VADER outputs using:
+- Sentiment analysis
+- Text classification
+- Data visualization
+- Basic ML evaluation and model comparison
 
-- accuracy
-- classification report
-- confusion matrix
+## How the Solution Works
 
-This helps identify where VADER performs well and where it struggles, especially around neutral and negative sentiment interpretation.
+### 1. Analysis notebook: [notebooks/01_explore.ipynb](notebooks/01_explore.ipynb)
 
-### 4. RoBERTa sentiment prediction
+The notebook is the primary analytical workflow in this project. It performs the following steps:
 
-The project uses a RoBERTa model from Hugging Face:
+- loads the source tweet dataset
+- filters the columns required for analysis and reporting
+- inspects the label distribution and dataset structure
+- cleans tweet text for VADER preprocessing
+- applies VADER to both raw and cleaned text
+- compares VADER output to the human-annotated labels supplied with the dataset
+- computes accuracy, confusion matrices, and classification reports
+- checks duplicate tweet IDs and exact-copy rows as a sensitivity check
+- joins RoBERTa predictions back to the main dataset
+- exports a dashboard-ready dataset for downstream reporting
 
-- cardiffnlp/twitter-roberta-base-sentiment-latest
+This notebook is the main place where the business questions are translated into data science analysis.
 
-The script in [score_roberta.py](score_roberta.py) prepares the text, runs batched sentiment inference, and saves the predictions to [outputs/roberta_results.csv](outputs/roberta_results.csv).
+### 2. RoBERTa prediction script: [score_roberta.py](score_roberta.py)
 
-### 5. Cross-model comparison
+The scoring script handles the transformer-based sentiment stage. It does the following:
 
-Once the RoBERTa predictions are joined back to the tweet dataset, the notebook evaluates:
+- normalizes tweet text for model input
+- removes URLs and standardizes usernames and HTML leftovers
+- loads the Hugging Face model: cardiffnlp/twitter-roberta-base-sentiment-latest
+- runs sentiment analysis in batches for efficiency
+- stores the predictions in [outputs/roberta_results.csv](outputs/roberta_results.csv)
 
-- VADER cleaned accuracy
-- RoBERTa accuracy
-- macro F1 scores
-- classification reports
+This script turns tweet text into a structured sentiment output that can be merged back into the main dataset.
 
-The analysis also checks a high-confidence subset where airline sentiment confidence is at least 0.7 to understand whether stronger labels result in cleaner model performance.
+### 3. Output data and reporting pipeline
 
-### 6. Duplicate and data quality checks
+The workflow exports the following files:
 
-The project checks the dataset for duplicate tweet IDs and rows. It quantifies:
+- [outputs/roberta_results.csv](outputs/roberta_results.csv) - RoBERTa sentiment predictions
+- [outputs/dashboard_data.csv](outputs/dashboard_data.csv) - cleaned dataset prepared for reporting
 
-- repeated tweet IDs
-- identical rows across all columns
-- conflicting labels across duplicate IDs
+These outputs support dashboard interpretation and operational analysis.
 
-After this review, it removes duplicate records before the final comparison metrics.
+### 4. Duplicate handling and sensitivity check
 
-### 7. Dashboard-ready export
+The project reviewed duplicate tweet IDs and exact-copy rows. It found 155 tweet IDs that appear twice, 62 rows that are exact copies, and 18 IDs with conflicting labels. All 14,640 rows were kept in the main analysis, and the repeated IDs were treated as a sensitivity check because removing them left all metrics unchanged.
 
-The final notebook creates a flattened export file at [outputs/dashboard_data.csv](outputs/dashboard_data.csv) with:
+## Dashboard Overview
 
-- tweet_id
-- airline
-- airline_sentiment
-- airline_sentiment_confidence
-- negativereason
-- tweet_created
-- text
-- vader_clean
-- roberta
-- roberta_score
-- date
-- vader_correct flag
-- roberta_correct flag
+The project includes a dashboard file at [dashboard/airline_sentiment_dashboard.pbix](dashboard/airline_sentiment_dashboard.pbix). The dashboard contains the following elements only:
 
-This output is structured for dashboard reporting and easy performance calculation.
+- sentiment mix by airline using the human-annotated labels
+- complaint reasons chart
+- model accuracy by airline comparing RoBERTa vs VADER
+- an airline slicer
+
+The dashboard has no time or trend view.
+
+### Dashboard placeholder screenshots
+
+![Dashboard overview screenshot](docs/images/dashboard_overview.png)
+This image should show the dashboard overview and the overall airline sentiment mix.
+
+![Dashboard airline selected screenshot](docs/images/dashboard_airline_selected.png)
+This image should show the airline slicer and the selected airline view.
+
+![Dashboard model accuracy screenshot](docs/images/dashboard_model_accuracy.png)
+This image should show the model accuracy comparison between RoBERTa and VADER by airline.
+
+These images must be added to the repository before publishing the dashboard in a portfolio context.
+
+## How to run
+
+1. Create a virtual environment in the project folder.
+2. Install the dependencies with: `pip install -r requirements.txt`
+3. Run the RoBERTa prediction script: `python score_roberta.py`
+4. Allow about 9 minutes on CPU for the model to download and run, as the model downloads about 500 MB.
+5. Open and run the cells in [notebooks/01_explore.ipynb](notebooks/01_explore.ipynb) in order to reproduce the analysis and metrics.
 
 ## Project files
 
@@ -114,9 +142,10 @@ This output is structured for dashboard reporting and easy performance calculati
 - [outputs/roberta_results.csv](outputs/roberta_results.csv) - model output predictions
 - [outputs/dashboard_data.csv](outputs/dashboard_data.csv) - dashboard-ready export
 - [dashboard/airline_sentiment_dashboard.pbix](dashboard/airline_sentiment_dashboard.pbix) - dashboard artifact
+- [INSIGHTS_REPORT.md](INSIGHTS_REPORT.md) - summary of findings and business insights
 
 ## Key takeaway
 
-This project demonstrates a practical sentiment-analysis workflow for social media data: preprocessing text, comparing a lightweight lexicon model with a transformer model, validating against labeled ground truth, and exporting a clean dataset ready for insight generation.
+This project demonstrates a practical sentiment-analysis workflow for social media data: preprocessing text, comparing a general lexicon model with a transformer model, validating against human-annotated labels, and exporting a clean dataset ready for insight generation.
 
 The notebook acts as the primary record of the analysis, while the Python script automates the RoBERTa prediction stage and the outputs folder stores the reusable result files.
